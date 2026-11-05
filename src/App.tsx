@@ -48,7 +48,7 @@ function playNote(won: boolean) {
 }
 function Trail({
   outcomes,
-  label = "Recent outcomes",
+  label = "Warm-up laps, then this match",
 }: {
   outcomes: Choice[];
   label?: string;
@@ -91,6 +91,7 @@ export default function App() {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const nextButton = useRef<HTMLButtonElement>(null);
   const primaryButton = useRef<HTMLButtonElement>(null);
+  const pauseButton = useRef<HTMLButtonElement>(null);
   const radioRef = useRef<HTMLDivElement>(null);
   const currentResult = match.results.at(-1);
   const outcomes = [...WARMUP, ...match.results.map((r) => r.outcome)];
@@ -110,6 +111,7 @@ export default function App() {
     [],
   );
   useEffect(() => {
+    if (phase === "revealing") pauseButton.current?.focus({ preventScroll: true });
     if (phase === "result") nextButton.current?.focus({ preventScroll: true });
     if ((phase === "choose" && match.results.length) || phase === "finished")
       primaryButton.current?.focus({ preventScroll: true });
@@ -196,17 +198,6 @@ export default function App() {
           </a>
           <nav aria-label="Main navigation">
             <button
-              className="nav-item current"
-              onClick={() => {
-                setPanel(null);
-                document
-                  .getElementById("game")
-                  ?.scrollIntoView({ block: "nearest" });
-              }}
-            >
-              Play
-            </button>
-            <button
               className="nav-item rules-nav"
               onClick={() => setPanel("rules")}
             >
@@ -218,7 +209,6 @@ export default function App() {
             </button>
           </nav>
           <span className="header-note">
-            <span className="status-dot" />
             Made for Squeekchain
           </span>
         </div>
@@ -229,7 +219,10 @@ export default function App() {
             <h1>
               Outguess the <span>little legs.</span>
             </h1>
-            <p>A hamster prediction game. Five rounds to beat Pip.</p>
+            <p>
+              A Squeekchain prediction game: call Run or Rest and outscore a bot
+              named Pip over five rounds.
+            </p>
           </div>
         </div>
         <div className="game-toolbar" id="game">
@@ -244,9 +237,11 @@ export default function App() {
             <button
               aria-pressed={mode === "live"}
               className={mode === "live" ? "active" : ""}
-              onClick={() => setMode("live")}
+              onClick={() => {
+                if (phase === "revealing" && !paused) togglePause();
+                setMode("live");
+              }}
             >
-              <span className="status-dot" />
               Live rounds
             </button>
           </div>
@@ -329,14 +324,11 @@ export default function App() {
                     The practice wheel
                   </span>
                   <span className="mobile-intel">
-                    <span>Last six</span>
+                    <span>Warm-up</span>
                     <Trail outcomes={outcomes} />
                     <span className="mobile-pip">
                       Pip: {pip === "run" ? "Run" : "Rest"}
                     </span>
-                  </span>
-                  <span className="desktop-caption">
-                    Trust your next prediction
                   </span>
                 </div>
               </div>
@@ -383,6 +375,7 @@ export default function App() {
                     <div className="reveal-actions">
                       <button
                         className="secondary-button"
+                        ref={pauseButton}
                         onClick={togglePause}
                       >
                         {paused ? "Resume reveal" : "Pause reveal"}
@@ -424,9 +417,6 @@ export default function App() {
                         Save scorecard
                       </button>
                     </div>
-                    <p className="control-hint">
-                      A good instinct deserves a rematch.
-                    </p>
                   </div>
                 ) : (
                   currentResult && (
@@ -471,7 +461,7 @@ export default function App() {
               <section className="match-score">
                 <div className="aside-heading">
                   <h2>The matchup</h2>
-                  <span>Best of five</span>
+                  <span>Five rounds, most points wins</span>
                 </div>
                 <div className="scoreboard">
                   <div>
@@ -557,7 +547,7 @@ export default function App() {
                   <h2>A little intel</h2>
                   <Icon name="spark" size={18} />
                 </div>
-                <p className="small muted">The last six practice outcomes</p>
+                <p className="small muted">Warm-up laps, then this match</p>
                 <Trail outcomes={outcomes} />
                 <div className="trail-key">
                   <span>
@@ -619,7 +609,7 @@ export default function App() {
             </aside>
           </div>
         )}
-        <section className="how-strip" aria-label="Game at a glance">
+        {mode === "practice" && <section className="how-strip" aria-label="Game at a glance">
           <div>
             <span className="step-number">01</span>
             <div>
@@ -641,9 +631,8 @@ export default function App() {
               <p>Score more than Pip over five rounds.</p>
             </div>
           </div>
-        </section>
+        </section>}
         <div className="bottom-note">
-          <p>Inspired by the hamster economy.</p>
           <a
             href="https://docs.squeekchain.com/"
             target="_blank"
@@ -712,10 +701,12 @@ export default function App() {
               token.
             </p>
             <p>
-              Live predictions use Squeekchain’s certified Sepolia rounds and
-              stay in this browser. Missing settlements stay pending. The
-              companion points contract is supplied as source for deployment;
-              this site does not submit transactions.
+              Live mode offers browser picks and onchain points on Sepolia.
+              Connect a wallet to predict the next round, then settle a certified
+              round and read your contract score. Correct onchain picks earn 100
+              points with no streak bonus; transactions cost testnet gas. Browser
+              picks stay editable and separate. Onchain play opens once the
+              contract is deployed. Unknown results stay pending.
             </p>
           </div>
           <button

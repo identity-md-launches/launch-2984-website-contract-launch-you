@@ -1,4 +1,4 @@
-# Explicit submission budget (8 MiB): source/config/docs <= 400 KiB;
+# Explicit submission budget (8 MiB): source/config/docs <= 600 KiB;
 # complete dist export <= 2 MiB; contract ABI <= 150 KiB; reserve > 5 MiB.
 # Dependency/cache/build intermediates at every nesting level are excluded.
 **/node_modules/

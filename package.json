@@ -11,10 +11,14 @@
     "test": "node --experimental-strip-types --test test/game.test.ts"
   },
   "dependencies": {
+    "@coinbase/wallet-sdk": "^4.4.0",
     "@fontsource-variable/bricolage-grotesque": "5.2.8",
     "@fontsource-variable/dm-sans": "5.2.8",
+    "@tanstack/react-query": "^5.106.0",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "viem": "^2.57.16",
+    "wagmi": "^3.7.11"
   },
   "devDependencies": {
     "@types/node": "22.19.0",

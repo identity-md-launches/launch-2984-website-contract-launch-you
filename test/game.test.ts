@@ -258,3 +258,44 @@ test("an exact safe active event resolves a mixed multi-round settlement", () =>
     null,
   );
 });
+
+
+test("mixed-batch omissions resolve Rest only with all unique active rounds", () => {
+  const x = coreFixture();
+  x.core.settledThroughRound = "186";
+  const event = (round: string, work = "6", blockNumber = "12000000") => ({
+    eventName: "RoundRecorded", contractAddress: x.identities.core, blockNumber,
+    arguments: [{ name: "roundId", value: round }, { name: "work", value: work }],
+  });
+  x.events = [event("186")];
+  const s = parseCore(x);
+  const pick: LocalPick = { round: "180", pick: "rest", startsAt: 0, madeAt: -1,
+    core: s.core, stream: s.stream, outcome: null };
+  assert.equal(resolveLocalPick(pick, s, settlements("1", "6", "170", "186")).outcome, "rest");
+  assert.equal(resolveLocalPick({ ...pick, pick: "run" }, s, settlements("1", "6", "170", "186")).outcome, "rest");
+  const incomplete = settlements("2", "12", "170", "186");
+  assert.equal(resolveLocalPick(pick, s, incomplete).outcome, null);
+  x.events = [event("186"), event("186"), event("169"), event("187"), event("181", "0")];
+  assert.equal(resolveLocalPick(pick, parseCore(x), incomplete).outcome, null);
+  x.events = [event("186"), event("181", "6", "12000001")];
+  assert.equal(resolveLocalPick(pick, parseCore(x), incomplete).outcome, null);
+  x.events = [event("186"), event("181")];
+  assert.equal(resolveLocalPick(pick, parseCore(x), incomplete).outcome, "rest");
+  assert.equal(resolveLocalPick({ ...pick, round: "181" }, parseCore(x), incomplete).outcome, "run");
+  assert.equal(resolveLocalPick(pick, s, settlements("0", "6", "170", "186")).outcome, null);
+  assert.equal(resolveLocalPick(pick, s, { ...settlements("1", "6", "170", "186"), installationId: "other" }).outcome, null);
+});
+
+
+test("game handoff never guesses a contract or accepts the wrong chain", async () => {
+  const { parseGameHandoff, parseRound } = await import("../src/handoff.ts");
+  assert.equal(parseGameHandoff({ status: "awaiting-deployment" }), null);
+  assert.throws(() => parseGameHandoff({}), /Sepolia/);
+  assert.throws(() => parseGameHandoff({ network: { chainId: 1 }, contracts: {} }), /Sepolia/);
+  assert.throws(() => parseGameHandoff({ network: { chainId: 11155111 }, contracts: {} }), /address/);
+  assert.throws(() => parseGameHandoff({ network: { chainId: 11155111 }, contracts: { WheelhouseRounds: { address: "0x0000000000000000000000000000000000000000" } } }), /address/);
+  const address = DEPLOYMENT.contracts.SqueekCore.address; // Address parsing only; not a game deployment.
+  assert.equal(parseGameHandoff({ network: { chainId: 11155111 }, contracts: { WheelhouseRounds: { address } } })?.address.toLowerCase(), address.toLowerCase());
+  for (const invalid of ["", "0", "-1", "1.2", "1e2", " 1", "01", "18446744073709551616"]) assert.equal(parseRound(invalid), null);
+  assert.equal(parseRound("18446744073709551615"), 18446744073709551615n);
+});

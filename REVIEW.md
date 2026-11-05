@@ -1,5 +1,7 @@
 # Wheelhouse contract and integration review
 
+The checks below are the accepted previous-round review record. This revision leaves the Solidity implementation and ABI unchanged; current reruns and the new website integration are recorded in `VALIDATION.md`.
+
 This is a worker adversarial review, not an independent audit or a deployment approval. Scope: `src/WheelhouseRounds.sol`, `script/Deploy.s.sol`, the test suite, `src/live.ts` and their documented boundary with the local game. No funds were sent and no contract was deployed to a public chain.
 
 ## Findings and dispositions
@@ -33,4 +35,4 @@ No unresolved source defect with a demonstrated High or Medium impact was found 
 
 The network deployer supplies the real requester-owned address; none is guessed in a manifest. After deployment, that owner obtains the current reviewed Sepolia SqueekCore proxy from the official deployment record and calls `configureCore`. The observed API/documentation mismatch must be resolved before configuration. No launch manifest is written in this implementation step.
 
-The static site is usable without this deployment and currently signs nothing. Adding a wallet transaction flow requires a real deployment handoff and the network's connector policy. The contract intentionally has no money/token/reward path. It does not prevent Sybil addresses, guarantee Reporter honesty, provide a reorg-proof public tournament, or recover after an incompatible upstream upgrade. No public-chain end-to-end transaction, independent audit, physical-device test or screen-reader session was performed.
+Practice and browser picks are usable without deployment. The revised site includes the network wallet connector and simulated Predict/Settle transaction flow, gated by a real deployment handoff. Its shipped awaiting-deployment record leaves transactions disabled; no deployed address or public signature is claimed. The contract intentionally has no money/token/reward path. It does not prevent Sybil addresses, guarantee Reporter honesty, provide a reorg-proof public tournament, or recover after an incompatible upstream upgrade. No public-chain end-to-end transaction, independent audit, physical-device test or screen-reader session was performed.

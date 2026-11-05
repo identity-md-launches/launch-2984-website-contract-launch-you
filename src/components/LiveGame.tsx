@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   fetchSnapshot,
   nextRound,
@@ -12,6 +12,7 @@ import {
 import { ChoiceControls } from "./ChoiceControls";
 import { Hamster } from "./Hamster";
 import { Icon } from "./Icon";
+const OnchainGame = lazy(() => import("./OnchainGame"));
 export function LiveGame() {
   const [snapshot, setSnapshot] = useState<LiveSnapshot | null>(null);
   const [error, setError] = useState("");
@@ -113,14 +114,17 @@ export function LiveGame() {
       <div className="game-surface">
         <div className="surface-heading">
           <span className="mode-label">
-            <span className="status-dot" />
+            {snapshot && <span className="status-dot" />}
             Sepolia rounds
           </span>
-          <span className="muted">Local predictions</span>
+          <span className="muted">Onchain &amp; browser picks</span>
         </div>
-        <div className="live-art">
+        <Suspense fallback={<p className="live-message" role="status">Loading onchain controls…</p>}>
+          <OnchainGame snapshot={snapshot} target={target} fresh={!stale && !loading} />
+        </Suspense>
+        {snapshot && <div className="live-art">
           <Hamster mood="rest" />
-        </div>
+        </div>}
         {loading && !snapshot ? (
           <div className="live-message" role="status">
             <h2>Checking the wheel…</h2>
@@ -128,7 +132,7 @@ export function LiveGame() {
           </div>
         ) : error ? (
           <div className="live-message">
-            <h2>The wheel can wait.</h2>
+            <h2>Live rounds are paused.</h2>
             <p role="status">{error}</p>
             <button
               className="primary-button"
@@ -191,7 +195,7 @@ export function LiveGame() {
           </div>
         ) : null}
         <p className="surface-footnote">
-          Free points only. Predictions stay in this browser.
+          Browser picks stay in this browser. Onchain points belong to your wallet.
           {checkedAt > 0 && snapshot && (
             <span className="checked-time">
               Last checked{" "}
@@ -207,7 +211,7 @@ export function LiveGame() {
           {notice}
         </p>
       </div>
-      <aside className="live-aside">
+      <div className="live-aside">
         <h2>A real hamster, real rounds.</h2>
         <p>
           Squeekchain certifies work in ten-minute rounds. Predict before a
@@ -234,7 +238,7 @@ export function LiveGame() {
           records, carry no monetary value and are separate from practice
           scores.
         </p>
-        <details>
+        <details open={Boolean(error)}>
           <summary>Why might live play pause?</summary>
           <p className="small">
             The feed must match Squeekchain’s published deployment identity. If
@@ -257,7 +261,7 @@ export function LiveGame() {
         </details>
         {notice && <p className="notice">{notice}</p>}
         <div className="prediction-list">
-          <h3>Live roundbook</h3>
+          <h3>Browser roundbook</h3>
           {picks.length ? (
             [...picks]
               .reverse()
@@ -283,7 +287,7 @@ export function LiveGame() {
             </p>
           )}
         </div>
-      </aside>
+      </div>
     </section>
   );
 }

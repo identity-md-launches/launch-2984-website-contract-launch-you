@@ -1,90 +1,79 @@
-# Wheelhouse validation
+# Wheelhouse revision validation
 
-Worker observations on 2026-11-05. These are local checks, not independent certification by the contributor network.
+Local worker observations on 2026-11-05. These checks do not independently certify behavior or a public deployment.
 
-## Scope and choices
+## Revision scope
 
-Delivered a Vite/React/TypeScript static prediction game and a deployable, unconfigured Solidity points companion. Practice is explicitly simulated, complete and usable without a wallet or network. Live mode is a browser-local prediction flow over certified Squeekchain rounds; it does not sign transactions. No new token, guessed game address, hosting or public deployment is claimed.
-
-The app defaults to practice because the real API's current deployment differs from the published deployment record and had no settled work at the time of the command-line read. That is not a reason to invent real rounds. The reader pins the published identity, rejects mismatches and preserves unknown outcomes. Original game logic and SVG artwork make this a playable product rather than an API dashboard or landing page.
+Preserved the accepted practice game, original artwork, scoring, storage/replay, contract implementation, ABI and deployment pin. Addressed all twelve reported findings. Added the missing Live-to-contract integration and its explicit undeployed state; no owner/address/token/manifest was invented. `.imd-responses.json` answers each finding with its original ID.
 
 ## Acceptance coverage
 
-| Requirement | Result and evidence |
+| Requirement | Result |
 | --- | --- |
-| Usable product and primary interactions | Passed a full five-round match, score/streak/progress updates, pause/reveal, next round, restart, history, deletion confirmation and downloads |
-| Responsive layout | Rendered at 320, 390, 768, 820, 1080 and 1440; no horizontal document overflow in the automated checks |
-| Product/main action on first 390 screen | Screenshot inspected; at 390×844 the game, simulation label, six clues, Pip's pick, both predictions and lock action fit on the first screen |
-| Static export plus source/lockfile | `dist/index.html` and all local assets exist; Vite base `./`; subpath `/preview/` run reports no missing local files. `dist/` is eligible for the worker's commit and not ignored |
-| Build and typecheck | `npm run build` and `npm run typecheck` exited 0 after the final source change |
-| Useful validation | Nine Node tests, 17 browser checks and 18 Solidity tests, including two fuzz properties; results below |
-| Six-domain review | All six domains checked for delivered states; explicit unperformed subchecks below |
-| Metadata | Title, description, favicon, og:title and 1200×630 PNG og:image; local share image rendered from authored SVG and visually inspected |
-| Documentation | Root `DESIGN.md`, `README.md`, `REVIEW.md`; implemented tokens, typography, components, states and build/preview commands documented |
+| Usable website and primary interactions | Full five-round practice game, saved/exported history, pause/resume/reveal, downloads and live browser picks pass. Wallet/RPC fixtures exercise Predict, Settle and scores |
+| Source, lockfile and static export | Vite base `./`; complete local assets in `dist/`; both browser suites serve `/preview/`; no local resource failures |
+| Build/typecheck/interaction validation | Production build and explicit typecheck pass; 11 Node tests and 31 browser checks pass |
+| First screen at 390 | Practice product, simulation disclosure, warm-up clues, choices and Lock action fit at 390×844. Live shows Connect, disabled onchain actions and deployment explanation before the illustration |
+| Metadata | Existing title, favicon, description, og:title and local PNG share image retained; probe passes |
+| Six-domain design review | Applied pinned Better Interface to changed surfaces; coverage and limits below. All 16 pinned taste checks pass |
+| Design and installation docs | `DESIGN.md` updated from final source; README documents install, preview, rebuild, wallet use, handoff and actual limitations |
+| Real deployment | After review, by the network. No handoff supplied: shipped runtime record explicitly says awaiting deployment; transaction controls remain disabled |
 
-## Better Interface six-domain review
+## Reproductions, corrections and rechecks
 
-| Domain | Status | Evidence / limits |
+| Finding / source | Reproduction | Correction and evidence |
 | --- | --- | --- |
-| Accessibility | Checked | Native labeled radios, fieldset/legend, landmarks, skip link, named icon controls, polite result region and semantic history table; keyboard arrows/Enter/Tab/Escape, visible radio focus, native modal with explicit Tab wrap and focus return; axe scans on ready/finished/rules. No screen-reader session or complete WCAG conformance claim |
-| Layout | Checked | Actual screenshots and overflow measurements at six widths; primary action measured inside 390×844; mobile clues beside controls; empty/history/dialog/live/error states exercised. Native 200% zoom, RTL and localization expansion not performed |
-| Writing | Checked | Product/action named directly; simulation/local/onchain distinctions; consistent Run/Rest/round vocabulary; recoverable network/unavailable/rate-limit messages; short slogan stack removed. No localization review |
-| Typography | Checked | Two local font families; 400/600/700 weights; five sizes per entry viewport within six tokens; hierarchy, wrapping and tabular scores inspected. No physical OS/font-rendering comparison |
-| Colors | Checked | Taste measured solid text/background pairs and passed; source-token pair computations below; stronger control boundary added; selected state includes dark border/native checked state. No dark theme; forced colors implemented but not manually inspected |
-| UI details | Checked | Ready/revealing/paused/result/finished, selected/hover/focus, history empty/populated/clear confirmation and live loading/errors checked; no nested panel cards or border-plus-shadow surfaces; short opt-in motion, pause/skip and reduced-motion test. Physical audio and Animations-panel 10% replay not manually checked |
+| Contract orphaned: `src/components/OnchainGame.tsx:49`, `src/wallet.ts` | Accepted frontend had no wallet/client/contract call; Live saved only editable local picks | Imported exported ABI; runtime handoff address; EIP-6963/mobile/Coinbase connections; simulated Predict/Settle and RPC score reads. Explicit disabled undeployed state. Fixture verifies destinations, arguments, pending/rejected/confirmed states and score refresh |
+| Misleading feed state: `src/components/LiveGame.tsx:117`, `src/live.ts:90` | Browser error displayed three green dots and closed explanation. Public API still reports a different core | App dots deleted; one snapshot-dependent dot remains; plain pause heading/message; details open on error. Identity-error fixture verifies these states; pin unchanged |
+| Mixed-batch Rest: `src/live.ts:266` | Exact reported batch (170,186], active=1, work=6, event round 186 left pick 180 pending | Unique positive-work events covering the certified active count prove omitted rounds Rest. Unit tests retain pending for incomplete, duplicated, unsafe or out-of-span evidence |
+| Practice instructions under Live: `src/App.tsx:612` | Browser found `.how-strip` while Live selected | Strip is practice-only; regression checks zero strips in Live |
+| Match rule and hero: `src/App.tsx:223`, `src/App.tsx:464` | Source confirmed five rounds/point winner/draws and unexplained Pip | Truthful points rule and requested Squeekchain/Pip sentence. First-screen screenshot and six-width checks pass |
+| Seeded history: `src/App.tsx:51`, `src/App.tsx:327`, `src/App.tsx:550` | Every replay begins from the same WARMUP | Warm-up/match labels and trail accessibility text corrected; WARMUP and `src/game.ts` unchanged |
+| Redundant Play nav: `src/App.tsx` navigation | Handler could be a no-op and did not change modes | Button/current styles removed; browser asserts absent |
+| Hidden reveal and focus: `src/App.tsx:114`, `src/App.tsx:241` | Keyboard Lock left BODY focused; entering Live then returning showed one result had advanced | Focus Pause on reveal; pause before changing mode. Regression returns to Resume reveal with zero results, then explicitly resumes |
+| Weak selected state: `src/styles.css:462` | Mobile hides radio indicator, leaving thin border/tint | Two-pixel ink selection perimeter via inset shadow; selected state and keyboard focus screenshots inspected |
+| Filler: `src/App.tsx:635` and stage/finished panels | Three reported lines duplicated or added no information | Removed lines; retained footer, useful scorecard download and left-aligned bottom link. Full match/download and screenshots rechecked |
 
-Wallet connector checks are not applicable because this export signs nothing. The contract is a separately supplied after-launch integration, not a fake wallet connection.
+Additional corrections found during validation: removing the last desktop caption exposed an older `:last-child` mobile rule that hid the clue strip; removed that obsolete rule and visually confirmed clues. Axe found a nested complementary landmark in Live; replaced the supporting aside wrapper with a plain layout div. Contract writes also disable during failed/refetching handoffs and missing/unconfigured/mismatched core checks, preventing stale cached configuration from enabling a write.
 
-## Findings fixed and rechecked
+## Better Interface coverage
 
-| Severity / domain | Final source location | Observed problem | Change and recheck |
-| --- | --- | --- | --- |
-| Medium / writing | `src/App.tsx:227`, `src/App.tsx:622` | First production taste run reported six short two-beat lines | Removed extra hero note and replaced repeated slogans with direct instructions; final slogans check passes |
-| High / layout | `src/styles.css:1701` | New mobile clues exposed a desktop caption through a more-specific selector, making the 320px page 367px wide | Corrected direct class selector and compacted clue cells at 360px, retaining labels; six-width checks and final taste layout pass |
-| High / accessibility | `src/components/Dialog.tsx:37` | Keyboard traversal could leave the intended dialog focus loop | Added first/last Tab wrapping to native showModal; retained Escape, inert background and focus return; twelve consecutive Tabs and Escape pass |
-| Medium / writing | `src/live.ts:142` | Failed browser fetch exposed “Failed to fetch” without useful recovery | Mapped to a connection/retry instruction, retained abort/timeouts; actual browser failure and fixture recovery rechecked |
-| Medium / accessibility | `src/styles.css:453`, `src/styles.css:549` | Unselected input/secondary-action edges had insufficient boundary contrast | Added `--control-border: #858d76`; measured 3.43:1 against the surface; final rendering, axe and taste rechecked |
+| Domain | Checked | Limits |
+| --- | --- | --- |
+| Accessibility | Native labeled radios and round input, uint64 error text, keyboard Lock→Pause, mode pause, dialog Tab/Escape/focus return, named Connect rows, polite statuses; axe clean on practice ready/finished/rules and undeployed/connected Live | No screen-reader session or complete WCAG conformance claim |
+| Layout | Screenshots and overflow at 320/390/768/820/1080/1440 for practice; 320/390/1440 for Live error; wallet bottom sheet and connected 390 screenshot inspected; primary action measured within first phone screen | Native zoom, RTL and localization expansion unperformed |
+| Writing | Squeekchain and Pip identified, points rule accurate, warm-up labeled, practice-only instructions, no misleading green dots on errors, local/onchain scores distinguished, gas and deployment status explicit | No localization review |
+| Typography | Existing six-token scale, two local families, three weights retained; probe reports five sizes per entry width; addresses and hashes wrap without clipping | No physical OS rendering comparison |
+| Colors | Existing palette retained; stronger selected perimeter; pinned contrast check passes, changed Live states pass axe | No new manual ratio claim; forced-colors and dark-mode review unperformed (no dark theme supplied) |
+| UI | Loading/undeployed/wrong-chain/rejected/pending/confirmed/failed-read states; account Disconnect; missing bytecode/core guards; no fake scores; practice motion pauses off-screen and respects reduced motion | Wallet apps, passkey creation and public signatures not exercised; no 10%-speed Animations-panel session |
 
-No applicable unresolved High or Medium source finding remains from these checks. Provider/deployment availability and after-launch work remain explicit limitations.
+One visual idea remains: the illustrated hamster wheel on warm paper, with orange actions and Run/Rest categories. No redesign or extra font system was added.
 
 ## Actual commands and results
 
-| Command / check | Result |
+| Check | Result |
 | --- | --- |
-| `npm run build` | Exit 0; TypeScript and Vite production export succeeded |
+| `npm run build` | Exit 0; TypeScript and Vite export successful |
 | `npm run typecheck` | Exit 0 |
-| `npm test` | 9 passed, 0 failed; includes 1000 seeded match invariants/replay, score cap, malformed saves, live identity/schema errors, exact time boundaries and certified vs unknown work |
-| `node --experimental-strip-types scripts/validate-ui.mjs` with supplied Playwright/Chromium | Exit 0; **17 checks passed**; manages its own bounded foreground subpath preview and closes browser/server |
-| Axe ready game | 38 rules passed, 0 violations in selected WCAG/best-practice tags |
-| Axe finished game | 35 rules passed, 0 violations; focus moves to Play again |
-| Axe rules dialog | 20 rules passed, 0 violations |
-| Pinned `taste.mjs --out test/scratch/taste` with supplied Playwright/Chromium | Exit 0; **16/16 checks passed**: render, layout, targets, contrast, casing, tracking, eyebrows, type sizes, type faces, glyphs, slogans, repetition, copy budget, chrome, motion, share |
-| `forge build --offline`, `forge test --offline`, `forge fmt --check` | Passed; 18 real tests in final root tree; clean source-only export compiled 3 Solidity files and passed 18 tests offline |
-| Second fuzz seed / 1024 runs | All 18 tests passed; 1024 runs for each of two fuzz tests |
-| Slither 0.11.6 High / High+Medium | 0 results in both filtered runs |
-| `forge build --sizes` | Main runtime 5116 bytes, initcode 5287; within limits |
-| Offline deploy script, Sepolia/test fixture owner | Succeeded without RPC or broadcast; tests also verify wrong-chain rejection and supplied owner |
-| ABI export | `forge inspect WheelhouseRounds abi --json`; parsed 30-entry JSON ABI |
-| `git check-ignore -v dist/index.html` | Printed nothing; export not ignored |
-| `python3 scripts/check-delivery.py` | Required paths, relative assets, JSON ABI and byte budget checked |
+| `npm test` | 11 passed, 0 failed; includes scoring/replay invariants, timing/identity guards, mixed settlements and handoff/round validation |
+| `node --experimental-strip-types scripts/validate-ui.mjs` with supplied Playwright/Chromium variables | Exit 0; 17 checks pass: full match, responsive layout, keyboard/modal behavior, storage, downloads, local-live fixtures, errors and static resources |
+| `node --experimental-strip-types scripts/validate-onchain.mjs` with the same variables | Exit 0; 14 checks pass: focus, mode pause, undeployed/error layout, phone links, EIP-6963, rejection retry, add/switch chain, transaction encoding/receipts, score reads, uint64 bounds, core/handoff guards and Disconnect |
+| Pinned `taste.mjs --out test/scratch/taste` | Exit 0; 16/16: render, layout, targets, contrast, casing, tracking, eyebrows, type sizes/faces, glyphs, slogans, repetition, copy budget, chrome, motion and share |
+| Axe | Zero violations in selected WCAG/best-practice tags on practice ready/finished/rules, Live identity error and connected fixture |
+| `forge build --offline && forge test --offline && forge fmt --check` | Exit 0; 3 Solidity files compiled, 18 tests passed, including 256 runs for each fuzz property. Contract files are unchanged |
+| `slither . --exclude-informational --exclude-optimization --exclude-low` | Not run successfully: command unavailable (`slither: command not found`). Previous-round analysis is not claimed as rerun |
+| `npm audit --omit=dev --json` | Zero production dependency vulnerabilities reported during revision |
+| `python3 scripts/check-delivery.py` | Required outputs, relative assets, ABI JSON, source/export budgets and 8 MiB total checked; checker accounts for removed old hashed bundles before worker staging |
+| `git check-ignore -v dist/index.html` | No output; export remains eligible for the worker's commit |
 
-The 17 browser checks cover ready/finished/rules accessibility; six-width reflow/first-screen action; keyboard input; pause; full match; SVG scorecard; roundbook/JSON export/dialog restoration; reload/deletion; restart confirmation; focus containment; actual public-feed error state; local live pick/zero-work settlement under a matching fixture; unavailable/rate-limit fixtures; blocked storage/reduced motion; subpath resources/console.
+Pinned probe reports 30 prose words on the first 390 screen (bar 60), 45 at 1440 (bar 90), two families and weights 400/600/700. All nine entry controls meet the 24px-or-spacing rule; seven compact secondary controls remain below the optional 44px comfort size.
 
-The browser MCP transport was unavailable. Rendered checks instead used the provided Playwright and Chromium in a bounded foreground script. Screenshots were generated and inspected; passing axe is not a screen-reader session or full accessibility certification.
+Disposable evidence is under `test/scratch/ui/`, `test/scratch/onchain/` and `test/scratch/taste/`. Inspected practice phone/desktop, Live undeployed/error/connected and phone wallet screenshots. These are removed before delivery; the reusable validation scripts remain. Public API results and all wallet/RPC fixtures are clearly separated: no production fallback data was added.
 
-## Measurements and evidence
+## Live and deployment limitations
 
-- At 390px: 22 words of first-screen prose, below the 60-word bar. At 1440px: 37, below 90. Five sizes per width, two families and three weights.
-- Nine entry controls satisfy the 24px-or-spacing target rule. Seven are below the optional 44px comfort size; compact secondary/mode controls retain separation. Main actions are at least 48px high.
-- Solid token ratios: ink/paper 11.95:1; muted/paper 4.99:1; muted/surface 5.44:1; muted/stage 4.72:1; surface/accent 5.08:1; run ink/background 6.38:1; rest ink/background 5.79:1. Control boundary/surface: 3.43:1.
-- Generated and viewed ready mobile/desktop, keyboard focus, finished-match and share-card images. Final entry views were additionally captured by the pinned probe.
-- Disposable evidence: `test/scratch/ui/` contains `ready-390.png`, `ready-1440.png`, `finished-390.png`, `keyboard-radio.png`, `rules-390.png`, `live-actual-390.png`, `results.json`; `test/scratch/taste/` contains `taste.json`, `shots/390.png`, `shots/1440.png`. Scratch evidence is not submitted; the static product and repeatable validation scripts are.
-- Byte budget: final delivery is below 1 MiB, against the 8 MiB limit; the full static export is 446104 bytes. The read-only delivery checker measures the final eligible file set and rejects missing/ignored outputs or excess bytes.
+A command-line GET to `https://api.squeekchain.com/v1/core` still returned core `0xfd6c166d4b8e2962e65746a13e5a0797cd4de0c4`, installation `sepolia-core-sepolia-20261103`, frontier 186. That differs from the unchanged published pin. The actual browser instead reached its recoverable network-error state. Identity mismatches, available feed/predictions and settlements were exercised using explicit fixtures. No real live outcome or public-chain transaction is claimed.
 
-## Limitations and completion
+The runtime handoff contains no deployed game address. The network must deploy the accepted contract, supply its actual handoff, and the owner must configure a reviewed core. New predictions require the existing API identity guard to pass. Settlement still uses the game contract's own certification checks when the API is unavailable. The frontend uses the Sepolia definition bundled with viem and the local exported game ABI; it never adopts the API-reported replacement identity.
 
-Command-line HTTP reached the real API and observed a different core identity than the pinned published deployment. The current deployment had zero settled work; its status feed said settlement was disabled. The actual browser request failed to reach the provider and showed a friendly retry state. Valid live pick/settlement paths were exercised with explicit fixtures. No real live result, historical replay, deployed game contract, wallet transaction, financial reward, public leaderboard or independently verified oracle answer is claimed.
-
-Native devices/zoom, screen readers, RTL/localization expansion, physical audio, manual forced-colors and public-chain transactions remain unperformed. The companion contract awaits the real launch owner and reviewed core configuration through the network's after-review deployment process. Upgrade/governance and local-score trust limits are in `REVIEW.md`.
-
-**Complete for the delivered website and contract-source scope.** Source, lockfile, static runtime assets and documentation are present. Provider-dependent live end-to-end settlement and actual deployment remain unclaimed.
+Browser validation used Chromium; WebKit, physical wallets/mobile app launches, passkeys, screen readers, native zoom, physical audio and manual forced-colors checks remain unperformed. No hosting or wallet transaction was requested/performed. The final static export is below 1 MiB and the eligible source/export bundle is below 2 MiB, within the 8 MiB assignment ceiling and documented path budgets.

@@ -87,7 +87,7 @@ export function parseCore(input: unknown): LiveSnapshot {
     decimal(config.maxWorkPerRound) !== 10000n
   ) {
     throw new LiveError(
-      "The live feed and published deployment record differ. Predictions are paused until they agree.",
+      "Squeekchain’s live feed names a different contract from its published record, so rounds can’t be scored here yet. Practice still works.",
       "identity",
     );
   }
@@ -210,8 +210,8 @@ export function makeLocalPick(
     outcome: null,
   };
 }
-// Absence from an event page is never evidence for Rest. Only an exact active
-// event or an explicitly certified all-zero / all-active batch resolves a pick.
+// Omission proves Rest only when every active round in the certified batch is
+// present. Count unique round IDs so duplicate events cannot fake completeness.
 export function resolveLocalPick(
   pick: LocalPick,
   snapshot: LiveSnapshot,
@@ -263,6 +263,15 @@ export function resolveLocalPick(
       return { ...pick, outcome: "rest" };
     if (active === through - from && decimal(s.workAdded) > 0n)
       return { ...pick, outcome: "run" };
+    const recorded = new Set<string>();
+    for (const e of snapshot.events) {
+      const args = Object.fromEntries(e.arguments.map((a) => [a.name, a.value]));
+      const round = decimal(args.roundId);
+      if (round > from && round <= through && decimal(args.work) > 0n)
+        recorded.add(round.toString());
+    }
+    if (active > 0n && decimal(s.workAdded) > 0n && BigInt(recorded.size) === active && !recorded.has(pick.round))
+      return { ...pick, outcome: "rest" };
   }
   return pick;
 }

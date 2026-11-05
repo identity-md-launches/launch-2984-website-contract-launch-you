@@ -30,7 +30,7 @@ Canonical tokens are at the start of `src/styles.css`.
 | `--danger` | `#a33f31` | Confirmed history deletion |
 | `--focus` | `#294f80` | Keyboard focus perimeter |
 
-Selected choices use a dark border and checked native radio state in addition to a tinted background. Success and misses have icons and text; outcomes never depend on color alone. The game surface uses a separate subtle structural edge (`#d3d7c7`), not the stronger control boundary. Illustrative fur/wheel colors are local to `Hamster.tsx`, not interface status tokens.
+Selected choices use a dark border plus `inset 0 0 0 1px var(--ink)` for a two-pixel visible selection ring, checked native radio state and a tinted background. The inset shadow communicates selection, not elevation. Success and misses have icons and text; outcomes never depend on color alone. The game surface uses a separate subtle structural edge (`#d3d7c7`), not the stronger control boundary. Illustrative fur/wheel colors are local to `Hamster.tsx`, not interface status tokens.
 
 Measured source-token pairs, whose solid backgrounds were also checked in the rendered export: ink/paper 11.95:1, muted/paper 4.99:1, muted/surface 5.44:1, muted/stage 4.72:1, surface/accent 5.08:1, run ink/background 6.38:1 and rest ink/background 5.79:1. Control boundary/surface contrast is 3.43:1. The focus ring has a 4px offset on buttons/links, so its adjacent background is the page/surface; the radio wrapper uses a 3px offset. See validation for measured review coverage and limitations.
 
@@ -55,16 +55,17 @@ Implemented breakpoints:
 | Above 1080px | Full header, two-column game, 48px hero and scores |
 | 1080px and below | Hide nonessential header note; aside becomes 270px; compact choices |
 | 820px and below | Game becomes one column; hero 32px; aside temporarily uses a two-column grid; shell inset 24px |
+| 640px and below | Wallet dialog becomes a bottom sheet with 8px inline clearance and safe-area bottom padding |
 | 540px and below | Header 64px; shell inset 20px; stage art 172px; inline recent-outcome/Pip strip appears; choices remain paired; detailed aside becomes a vertical flow |
 | 360px and below | Shell inset 16px; mode controls and clue cells compact; redundant choice icon is removed while label and native radio remain |
 
-The first 390×844 screen contains the product, the simulation disclosure, the six clues, both predictions and the lock action. Normal-flow controls avoid sticky overlap. English layouts were exercised at 320, 390, 768, 820, 1080 and 1440px; native zoom, RTL and localization expansion remain unperformed rather than inferred.
+The first 390×844 practice screen contains the product, the simulation disclosure, six warm-up/match clues, both predictions and the lock action. The hero names Squeekchain and explains Pip as a bot. Live starts with onchain controls and Connect before the illustration; the undeployed state shows disabled actions and its deployment explanation on the first screen. Normal-flow controls avoid sticky overlap. English layouts were exercised at 320, 390, 768, 820, 1080 and 1440px; native zoom, RTL and localization expansion remain unperformed rather than inferred.
 
 ## Surfaces, shape and depth
 
 The game has one 16px rounded structural border; its stage uses a matching 15px inner top radius. There are no nested panel cards or border-plus-shadow surfaces. Inputs have 9px radii, primary/secondary buttons 8px, mode group 10px/6px, outcome cells 6px and avatars 50%.
 
-Dialogs are the only elevated surface: 18px radius, no border, `0 20px 80px #25291d30` shadow and `#23291e65` backdrop with 3px blur. The default dialog is at most 520px, roundbook 620px; both fit within the viewport with 16px side clearance and an internal scroll area. The skip link is the only fixed control and is revealed by keyboard focus.
+Dialogs are the only elevated surface: 18px radius, no border, `0 20px 80px #25291d30` shadow and `#23291e65` backdrop with 3px blur. The default dialog is at most 520px, roundbook 620px and wallet 420px; standard dialogs fit with 16px side clearance and an internal scroll area. The wallet variant uses a bottom sheet below 640px, with 8px clearance and 48px-minimum rows. The skip link is the only fixed control and is revealed by keyboard focus.
 
 ## Components and states
 
@@ -74,20 +75,22 @@ Dialogs are the only elevated surface: 18px radius, no border, `0 20px 80px #252
 | Prediction choices | `src/components/ChoiceControls.tsx` | Native labeled radios in a fieldset; Run/Rest categories; checked border, hover and visible focus; arrow keys change selection |
 | Hamster wheel | `src/components/Hamster.tsx` | Original decorative inline SVG; ready/run/rest/win mood; meaningful outcomes are also written as text |
 | Primary/secondary actions | `src/styles.css` | One orange primary action; bordered neutral alternatives; hover, focus, active and disabled treatments; touch actions remain in normal flow |
-| Match clues | `Trail` in `src/App.tsx` | Text alternatives for Run/Rest icons; recent six outcomes with oldest-to-newest key; compact mobile strip near controls |
+| Match clues | `Trail` in `src/App.tsx` | Text alternatives for Run/Rest icons; six warm-up/match laps with oldest-to-newest key; warm-up explicitly labeled; compact mobile strip near controls |
 | Dialog | `src/components/Dialog.tsx` | Native `showModal`, inert background, explicit Tab wrap, Escape/backdrop close and trigger-focus restoration; close button has a name |
 | Roundbook | `src/App.tsx`, `src/storage.ts` | Empty, populated, exported and clear-confirmation states; semantic table, last 20 completed matches |
-| Live game | `src/components/LiveGame.tsx`, `src/live.ts` | Loading, matched feed, locally locked prediction, pending/result, paused, stale, unavailable and error states; one-minute freshness guard, no fabricated data |
+| Live game | `src/components/LiveGame.tsx`, `src/live.ts` | Loading, matched feed, locally locked prediction, pending/result, paused, stale, unavailable and error states; one-minute freshness guard. Green status dot exists only for a validated snapshot; errors expand the explanation. Practice instructions are absent in Live |
+| Onchain points | `src/components/OnchainGame.tsx`, `src/handoff.ts`, `src/wallet.ts` | Live-only lazy module; reads handoff, checks code/core, reads wallet score, simulates Predict/Settle, waits for receipt, reports rejection/failure/confirmation. No address means disabled actions with an explicit deployment message. Round input validates uint64 bounds; addresses/hashes wrap fully |
+| Wallet connection | `src/components/ConnectWallet.tsx` | One Connect control; named extension discovery, phone app links, Coinbase Wallet/Smart Wallet; per-row pending state, readable rejection, chain switch/add, checksummed account and Disconnect. Reuses Dialog focus trapping, Escape/backdrop close and focus return |
 | Icons | `src/components/Icon.tsx` | One currentColor SVG set with 1.7px round strokes; decorative icons hidden from assistive technology |
 
 ## Motion and interaction
 
-There is no page-load animation. Button transitions name only background, color and transform, take 120ms, and press at scale 0.96. Wheel/paw motion exists only during a short reveal. A visible pause and immediate-reveal control are available. Under reduced motion, animations/transitions stop and results advance after 150ms instead of the normal 2.2-second reveal. Optional tones have corresponding visible result text and are off by default.
+There is no page-load animation. Button transitions name only background, color and transform, take 120ms, and press at scale 0.96. Wheel/paw motion exists only during a short reveal. A visible pause and immediate-reveal control are available. Locking moves focus to Pause reveal; changing to Live pauses a running practice reveal until the player returns and resumes it. Under reduced motion, animations/transitions stop and results advance after 150ms instead of the normal 2.2-second reveal. Optional tones have corresponding visible result text and are off by default.
 
 A stable polite live region announces important game results. Inline live failures retain a recovery action. Browser storage failures produce a visit-only notice while leaving play available. Custom focus is 3px solid with an offset; forced-colors rules retain system-visible selection/button edges.
 
 ## Reuse
 
-Use the existing page shell and six-size scale for another view. Reuse the primary/secondary action classes and native controls. Keep Run/Rest categories consistent, keep data next to the choice it informs, and label simulated/local/onchain results accurately. Add modes through the existing mode group; do not insert a marketing hero above the game or introduce another primary accent. A wallet feature would be a separate integration requiring the real deployment and the network connector pattern.
+Use the existing page shell and six-size scale for another view. Reuse the primary/secondary action classes and native controls. Keep Run/Rest categories consistent, keep data next to the choice it informs, and label simulated/local/onchain results accurately. Add modes through the existing mode group; do not insert a marketing hero above the game or introduce another primary accent. Use the existing ConnectWallet/OnchainGame integration for wallet actions, with the real runtime deployment handoff and imported ABI. Never substitute browser scores for contract reads or a made-up address for a pending deployment. Full contract addresses and transaction hashes wrap; the account control alone uses a short label with the full address available in its dialog.
 
 Design guidance was adapted from [Jakub Krehel's Better Interface](https://github.com/jakubkrehel/skills/tree/267330e1adfc66a718fb65fa6918c1f06d0a689e/skills/better-interface), MIT. Documentation guidance was adapted from [Paul Bakaus's Impeccable document guide](https://github.com/pbakaus/impeccable/blob/9d715cc4f5564a990ca8345abfdd5df6dc9b41c8/skill/reference/document.md), Apache-2.0. Full pinned license texts/notices are preserved in `docs/BETTER-INTERFACE-LICENSE.txt`.

@@ -5,11 +5,13 @@ export function Dialog({
   children,
   close,
   wide = false,
+  className = "",
 }: {
   title: string;
   children: ReactNode;
   close: () => void;
   wide?: boolean;
+  className?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const closeRef = useRef(close);
@@ -31,7 +33,7 @@ export function Dialog({
   }, []);
   return (
     <dialog
-      className={`dialog ${wide ? "dialog-wide" : ""}`}
+      className={`dialog ${wide ? "dialog-wide" : ""} ${className}`}
       ref={dialog}
       aria-labelledby="dialog-title"
       onKeyDown={(e) => {

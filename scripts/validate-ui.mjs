@@ -352,13 +352,14 @@ try {
   );
   await page.getByRole("button", { name: "Live rounds", exact: true }).click();
   await page
-    .getByRole("heading", { name: "The wheel can wait." })
+    .getByRole("heading", { name: "Live rounds are paused." })
     .waitFor({ timeout: 20000 });
   await page.screenshot({
     path: `${output}/live-actual-390.png`,
     fullPage: true,
   });
-  const actual = await page.locator(".live-message").innerText();
+  await page.getByText("Onchain play opens once the contract is deployed.", { exact: true }).waitFor();
+  const actual = await page.locator("div.live-message").innerText();
   check(
     "Actual public live feed",
     "Observed response: " + actual.replace(/\s+/g, " "),
